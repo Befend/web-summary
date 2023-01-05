@@ -1,16 +1,18 @@
 # reactivity
-![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e3951bfbb85f4c21abc1469ff084c48b~tplv-k3u1fbpfcp-watermark.image?)
+![image.png](./images/vue.png)
 ## 前言
 不久前，**尤大**官宣**Vue3**将在**2022年2月7日**成为**新的默认版本**。对大多数的前端人来说，Vue3的学习已是势在必行。
 
-![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4dbdab22f39a4f10bcdd60a56dd445b5~tplv-k3u1fbpfcp-watermark.image?)
-这篇文章将记录通过[崔效瑞大佬](https://space.bilibili.com/175301983)的[mini-vue](https://github.com/cuixiaorui/mini-vue)，学习Vue3源码过程中的那些事儿，今天主要讲讲**reactivity**的核心流程。开篇之前我们先来说说**Vue3的源码结构**。
+![image.png](./images/EvenYou.png)  
+这篇文章将记录通过[大崔哥](https://space.bilibili.com/175301983)的[mini-vue](https://github.com/cuixiaorui/mini-vue)，学习Vue3源码过程中的那些事儿，今天主要讲讲**reactivity**的核心流程。开篇之前我们先来说说**Vue3的源码结构**。  
+
+本文掘金地址传送门：**[Vue3的源码学习系列之reactivity](https://juejin.cn/post/7058965986363326472)**
 
 ## Vue3源码的结构
 我认为，学习一门语言源码之前，了解其代码结构还是很有必要的。\
 从Vue3的源码工程来看，**Vue3的源码结构**主要分为**编译阶段**和**运行时阶段**。
 
-![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/10d8a3dcfe4e475580694a8e6cca0d8d~tplv-k3u1fbpfcp-watermark.image?)
+![image.png](./images/fileImport.png)
 
 **编译阶段**由`@vue/compiler-sfc`包来解析`*.vue`文件，每个`*.vue`文件中`<template>`块的内容会被提取出来并传递给`@vue/complier-dom`包（依赖于`@vue/compiler-core`包），预编译为JavaScript的渲染函数，并附属到导出的组件上作为其`render`选项。\
 \
@@ -18,17 +20,17 @@
 \
 最后由`@vue/reactivity`实现Vue的响应式。
 
-![vue3的源码结构.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/eee1f5aff421466199131c9dcc4ef85c~tplv-k3u1fbpfcp-watermark.image?)
+![vue3的源码结构.png](./images/vue%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B.png)
 # reactivity的核心流程
 进入reactivity的核心流程学习之前，我们可以先了解一下**reactive**的使用，以及官网对于[reactive](https://v3.cn.vuejs.org/api/basic-reactivity.html#reactive)的描述。
 
-![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/dc576be433124503b4562e71a2de2ab4~tplv-k3u1fbpfcp-watermark.image?)
+![image.png](./images/reactivity%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B.png)
 
 这篇文章中，我将用**断点调试**的方法来梳理**reactivity**模块的核心流程。
 
 如果你也使用**vscode**，那么你可以安装**Jest**和**Jest Runner**这两个插件来启动测试用例。**打好断点**之后，**按F5**，测试用例便会运行，调试器就会停在断点的位置。
 
-![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1f52606567294466bc6290ecba915b44~tplv-k3u1fbpfcp-watermark.image?)
+![image.png](./images/debugger.png)
 ## 第一步：创建响应式对象
 从**reactivity**的单元测试文件`packages/reactivity/_tests_/reactive.spec.ts`入手。
 
@@ -144,7 +146,7 @@ function createInstrumentationGetter(isReadonly: boolean, shallow: boolean) {
 
 ### baseHandlers
 从上述的代码中，**baseHandlers**就是响应式对象的处理器。文件路径在`packages/reactivity/src/baseHandlers.ts`。
-![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5bebb45c08de42f0b2a28d943752326e~tplv-k3u1fbpfcp-watermark.image?)
+![image.png](./images/baseHandlers.png)
 
 该文件主要是将**mutableHandlers**变量导出，该变量含有`get、set、deleteProperty、has、ownKeys`等方法。
 ```ts
@@ -247,8 +249,8 @@ export function effect<T = any>(
   return runner
 }
 ```
-**effect函数**通过接收一个`fn`函数，在`run`方法中调用了`fn`函数之后，初次触发reactive的`get操作`，从而执行**track函数**，进行**依赖关系收集**，把effect收集起来作为依赖。
-![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e237596bacbf4dde96fea0ca23857813~tplv-k3u1fbpfcp-watermark.image?)
+**effect函数**通过接收一个`fn`函数，在`run`方法中调用了`fn`函数之后，初次触发reactive的`get操作`，从而执行**track函数**，进行**依赖关系收集**，把effect收集起来作为依赖。  
+![image.png](./images/track.png)
 ```ts
 // 调用get方法的时候，进行依赖收集
 // target: 当前追踪对象 type：收集对象类型 key: 当前访问的key
@@ -277,7 +279,7 @@ export function track(target: object, type: TrackOpTypes, key: unknown) {
 ## 第三步： 通过effect副作用函数，派发通知
 当下次响应式对象发生改变时，就会触发reactive的`set操作`，从而执行**trigger函数**，重新运行effect函数，实现数据变更的派发通知，触发依赖的重新收集。
 
-![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/efe18fdd483244c182fed5fe44156485~tplv-k3u1fbpfcp-watermark.image?)
+![image.png](./images/trigger.png)
 ```ts
 // 调用set方法，触发变更函数
 export function trigger(
@@ -327,4 +329,4 @@ reactivity的核心流程分为：
 + 初始化时，创建**effect对象**，执行`fn`函数，触发`get操作`，执行**track函数**，把effect收集起来作为`依赖`
 + 数据变更时，触发`set操作`，执行**trigger函数**，**重新**进行`依赖关系收集`
 
-![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8640f5e260eb4297b46b8ef747c0c563~tplv-k3u1fbpfcp-watermark.image?)
+![image.png](./images/reactivity.png)
